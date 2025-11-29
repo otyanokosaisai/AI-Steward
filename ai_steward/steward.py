@@ -23,6 +23,7 @@ from typing import Any, Callable
 import logging
 
 from ai_steward.tools.prompt import PromptInstance
+from ai_steward.tools.make_doc import save_secure_report
 
 sys.path.append(osp.join(osp.dirname(__file__), ".."))
 from ai_steward.llm import (
@@ -38,22 +39,9 @@ def run_secure_answer(
     model: str,
     embed_model: str,
     question: str, user_level: str, kb_path: str, out_path: str, lang: str,
-    allow_upper_context: bool = True, debug: bool = False, max_retries: int = 10
+    allow_upper_context: bool = True, max_retries: int = 10,
+    max_depth: int = 8, beam_size: int = 6, max_trial_num: int = 24, epsilon: float = 0.25, explore_top_k: int = 6
 ) -> None:
-
-    run_id = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    def _save_debug_output(step_name: str, content: Any, file_type: str = "txt"):
-        if not debug: return
-        try:
-            debug_dir = osp.join("outputs", "debug", run_id)
-            os.makedirs(debug_dir, exist_ok=True)
-            filepath = osp.join(debug_dir, f"{step_name}.{file_type}")
-            with open(filepath, "w", encoding="utf-8") as f:
-                if isinstance(content, (dict, list)): json.dump(content, f, ensure_ascii=False, indent=2)
-                else: f.write(str(content))
-            print(f"[DEBUG] Saved step output to: {filepath}")
-        except Exception as e:
-            print(f"[DEBUG] Failed to save debug output for {step_name}: {e}")
 
     llm_client, llm_model = create_client(model)
     llm_infer: Callable[[PromptInstance, float], str | dict] = lambda prompts, temperature: get_json_response(prompts=prompts, client=llm_client, model=llm_model, max_retries=max_retries, temperature=temperature)
@@ -64,7 +52,6 @@ def run_secure_answer(
 
     if not isinstance(analyzer_json, dict):
         raise ValueError(f"Invalid format is given. {type(analyzer_json)}")
-    _save_debug_output("01_query_analyzer_parsed", analyzer_json, "json")
     questions = analyzer_json.get("questions")
     if questions is None:
         raise ValueError(f"Questions are not extracted")
@@ -76,8 +63,7 @@ def run_secure_answer(
     drafts = draft_writer(question, questions, core_blob, upper_blob, allow_upper_context, llm_infer, lang)
     logging.debug(f'-----Write up drafts-----\n{exclude_thinkings(drafts)}')
 
-    refined_draft = refine_tree(drafts, core_blob, upper_blob, llm_infer, lang)
+    refined_draft = refine_tree(drafts, questions, core_blob, upper_blob, llm_infer, lang, max_depth, beam_size, max_trial_num, epsilon, explore_top_k)
     logging.debug(f'-----Refined drafts-----\n{refined_draft.draft}\n{refined_draft.citations}\n{refined_draft.escalation_suggestions}')
 
-    with open(out_path, "w", encoding="utf-8") as f:
-        json.dump(refined_draft.draft, f, ensure_ascii=False, indent=2)
+    save_secure_report(refined_draft, out_path)

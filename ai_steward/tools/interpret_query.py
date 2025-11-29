@@ -203,7 +203,6 @@ INTERPRETER_TEMPLATE = lambda lang: PromptTemplate(
             },
         ],
         output_schema={
-            "questions": [str],
             "thinkings": {
                 "language": str,
                 "assumptions": [str],
@@ -214,7 +213,8 @@ INTERPRETER_TEMPLATE = lambda lang: PromptTemplate(
                 "decomposition_plan": {"strategy": str, "checks": [str]},
                 "validation_notes": [str],
                 "summary": str
-            }
+            },
+            "questions": [str]
         }
 )
 

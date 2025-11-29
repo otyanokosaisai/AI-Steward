@@ -162,9 +162,6 @@ def track_token_usage(func):
                 "Either 'prompt' or 'system_message' must be provided for token tracking"
             )
 
-        logging.info("args: ", args)
-        logging.info("kwargs: ", kwargs)
-
         result = await func(*args, **kwargs)
         model = result.model
         timestamp = result.created
@@ -204,8 +201,6 @@ def track_token_usage(func):
         result = func(*args, **kwargs)
         model = result.model
         timestamp = result.created
-        logging.info("args: ", args)
-        logging.info("kwargs: ", kwargs)
 
         if (
             hasattr(result, "usage") and
