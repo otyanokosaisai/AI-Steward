@@ -41,3 +41,4 @@ omegaconf
 botocore
 boto3
 pydantic
+pdfkit

@@ -42,7 +42,7 @@ class LocalKnowledgeBaseSearchTool:
             with open(kb_path, "r", encoding="utf-8") as f:
                 original_index = json.load(f)
             
-            print("Generating embeddings for all documents in memory... (This may take a while for a large KB)")
+            print("Generating embeddings for all documents in memory...")
             for i, item in enumerate(original_index):
                 content_to_embed = (item.get("title", "") + "\n" + item.get("summary", "")).strip()
                 if content_to_embed:

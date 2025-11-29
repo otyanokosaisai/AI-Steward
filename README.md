@@ -29,7 +29,6 @@ A derivative work of <a href="https://github.com/SakanaAI/AI-Scientist-v2">AI-Sc
 1. [Requirements](#requirements)  
 1. [Verified Environment](#verified-environment)  
 1. [Quickstart (Docker + Ollama)](#quickstart-docker--ollama)  
-1. [Configuration](#configuration)  
 1. [License & Attribution](#license--attribution)  
 1. [Acknowledgement](#acknowledgement)
 
@@ -137,10 +136,10 @@ cd security_supervisor
 
 docker run --name security_supervisor -it --gpus all --network=host \
   -v "$PWD":/workspace -w /workspace \
-  -e LOCAL_LLM_URL=LOCAL_LLM_URL \
-  -e LOCAL_EMB_MODEL=LOCAL_EMB_MODEL \
-  -e LOCAL_LLM_MODEL=LOCAL_LLM_MODEL \
-  -e LLM_API_KEY="ollama" \
+  -e LOCAL_LLM_URL=LOCAL_LLM_URL \ # If you don't use, this is ifnored.
+  -e EMBEDDING_MODEL_NAME=EMBEDDING_MODEL_NAME \
+  -e LLM_MODEL_NAME=LLM_MODEL_NAME \
+  -e LLM_API_KEY=LLM_API_KEY \ # If you use ollama, set dummy api key here
   continuumio/miniconda3 bash
 ```
 
@@ -151,6 +150,7 @@ docker run --name security_supervisor -it --gpus all --network=host \
 conda create -n guardian_angel python
 conda install -y pytorch torchvision torchaudio pytorch-cuda=12.4 -c pytorch -c nvidia
 conda activate guardian_angel
+conda install -c conda-forge markdown wkhtmltopdf
 pip install -r requirements.txt
 ```
 
@@ -159,17 +159,23 @@ pip install -r requirements.txt
 4. Run
 ```bash
 python main.py \
-  --out outputs/secure_answer.json \
+  --out outputs/secure_answer \
   --user-level L2 \
   --kb examples/kb.json \
   --lang English \
-  --question "When does AURA start its teaser? And what about Cell-Nova production stability?"
+  --question "When and in which country does AURA start its teaser? And what about Cell-Nova production stability? And how much is Aura's budget"
 ```
 
----
+Or
 
-Configuration
-Main environment variables:
+```bash
+python main.py \
+  --out outputs/unlimited_answer \
+  --user-level L3 \
+  --kb examples/kb.json \
+  --lang English \
+  --question "When and in which country does AURA start its teaser? And what about Cell-Nova production stability? And how much is Aura's budget"
+```
 
 ---
 
